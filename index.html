@@ -151,6 +151,30 @@
       </div>
     </section>
 
+    <section class="produce-history-section">
+
+    <div class="history-heading">
+      <p class="eyebrow dark">MY PRODUCE</p>
+
+      <h2>
+        Your harvest<br>
+        <span>at a glance.</span>
+      </h2>
+
+      <p>
+        KrishiFlow keeps a simple record of the produce
+        you've analyzed.
+      </p>
+    </div>
+
+    <div id="produceHistory" class="produce-history">
+      <p class="empty-history">
+        No produce analyzed yet.
+      </p>
+    </div>
+
+  </section>
+
     <section class="scene scene-weather" id="weather" data-scene="weather">
       <div class="weather-backdrop"></div>
       <div class="weather-copy">
@@ -207,6 +231,126 @@
       </div>
     </section>
 
+<section class="scene scene-buyer" id="buyer">
+
+  <div class="buyer-copy">
+
+    <p class="eyebrow dark">
+      04 • NEGOTIATE WITH BUYERS
+    </p>
+
+    <h2>
+      Your harvest.<br>
+      <span>Your price.</span>
+    </h2>
+
+    <p>
+      Receive buyer offers and compare them with your expected price
+      before deciding whether to accept or make a counter offer.
+    </p>
+
+  </div>
+
+
+  <div class="buyer-card">
+
+    <div class="buyer-header">
+      <div>
+        <span class="tag">BUYER OFFER</span>
+        <h3>FreshMart Buyer</h3>
+      </div>
+
+      <span class="offer-status" id="offerStatus">
+        PENDING
+      </span>
+    </div>
+
+
+    <div class="offer-details">
+
+      <div>
+        <span>Your expected price</span>
+        <strong id="buyerExpected">
+          ₹30/kg
+        </strong>
+      </div>
+
+      <div>
+        <span>Buyer offer</span>
+        <strong id="buyerOffer">
+          ₹27/kg
+        </strong>
+      </div>
+
+      <div>
+        <span>Difference</span>
+        <strong id="buyerDifference">
+          ₹3/kg
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="buyer-actions">
+
+      <button
+        id="acceptOffer"
+        class="buyer-button accept">
+        Accept Offer
+      </button>
+
+      <button
+        id="counterOffer"
+        class="buyer-button counter">
+        Counter Offer
+      </button>
+
+    </div>
+
+
+    <div
+      id="counterBox"
+      class="counter-box"
+      style="display:none;">
+
+      <label>
+        Your counter price (₹/kg)
+
+        <input
+          id="counterPrice"
+          type="number"
+          value="29"
+          min="0"
+        />
+      </label>
+
+      <button
+        id="sendCounter"
+        class="buyer-button accept">
+        Send Counter Offer →
+      </button>
+
+    </div>
+
+
+    <p
+      id="offerMessage"
+      class="offer-message">
+    </p>
+
+    <div class="offer-history">
+      <div class="tag">NEGOTIATION HISTORY</div>
+
+      <div id="offerHistory">
+        No negotiation activity yet.
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
     <section class="scene scene-decision" id="decision" data-scene="decision">
       <div class="decision-copy">
         <p class="eyebrow">04 • KRISHIFLOW DECISION</p>
@@ -246,6 +390,9 @@
       <div class="storage-list">
         <article class="storage-card">
           <div class="storage-top"><span class="warehouse-icon">▦</span><span class="available">AVAILABLE</span></div>
+          <div class="best-match-label" id="bestStorageLabel">
+            ⭐ BEST MATCH
+          </div>
           <h3>GreenGrain Warehouse</h3>
           <p>Suitable for dry grain storage</p>
           <div class="storage-meta"><span>📍 8 km</span><span>₹1.80/kg/day</span></div>

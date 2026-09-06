@@ -47,7 +47,7 @@ button{cursor:pointer}
 .btn-ghost{color:#fff;border-color:rgba(255,255,255,.55);background:rgba(0,0,0,.1)}
 .glass-card{border:1px solid rgba(255,255,255,.22);background:var(--glass);backdrop-filter:blur(18px);box-shadow:0 25px 70px rgba(0,0,0,.2)}
 .hero-card{position:absolute;z-index:4;right:5%;bottom:155px;width:370px;padding:23px;border-radius:25px}
-.card-label{font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.75)}.risk-pill{display:inline-block;float:right;margin-top:-5px;padding:8px 12px;border-radius:999px;background:#f19756;color:#fff;font-size:12px}.weather-row{display:flex;gap:16px;align-items:center;clear:both;padding:25px 0}.weather-symbol{font-size:44px}.weather-row h3{margin:0 0 7px;font-size:21px}.weather-row p{margin:3px 0}.small{font-size:13px;color:rgba(255,255,255,.65)}.muted-dot{padding:0 5px;color:rgba(255,255,255,.5)}
+.card-label{font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.75)}.risk-pill{display:block;float:right;margin-top:-5px;padding:8px 12px;border-radius:999px;background:#f19756;color:#fff;font-size:12px}.weather-row{display:flex;gap:16px;align-items:center;clear:both;padding:25px 0}.weather-symbol{font-size:44px}.weather-row h3{margin:0 0 7px;font-size:21px}.weather-row p{margin:3px 0}.small{font-size:13px;color:rgba(255,255,255,.65)}.muted-dot{padding:0 5px;color:rgba(255,255,255,.5)}
 .mini-link{display:flex;justify-content:space-between;border:1px solid rgba(255,255,255,.18);padding:12px 15px;border-radius:999px;background:rgba(255,255,255,.06);font-size:13px}
 .wheat-scene{position:absolute;z-index:2;right:28%;bottom:-12px;width:310px;height:690px;filter:drop-shadow(0 14px 30px rgba(0,0,0,.2))}
 .wheat-svg{width:100%;height:100%;overflow:visible}
@@ -84,4 +84,241 @@ button{cursor:pointer}
   .produce-form{grid-template-columns:1fr}.scene-market{padding-left:7%;padding-right:7%}.market-visual{min-height:430px}.price-orbit{width:270px;height:270px}.price-orbit span{width:120px;height:120px}.market-card{width:230px;left:42%;top:6%}.market-number{font-size:48px}
   .decision-options{grid-template-columns:1fr 1fr}.storage-list{grid-template-columns:1fr}
   .footer{align-items:flex-start;flex-direction:column}
+}
+.storage-card[data-best="true"] {
+  border: 2px solid #76c95b;
+  box-shadow: 0 20px 55px rgba(76, 172, 77, 0.16);
+  position: relative;
+}
+
+.storage-card[data-best="true"]::before {
+  content: "BEST MATCH";
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #76c95b;
+  color: #123118;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.best-match-label {
+  display: inline-block;
+  margin-bottom: 16px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #76c95b;
+  color: #123118;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.best-match-label {
+  display: none;
+  width: fit-content;
+  margin: 16px 0 10px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #76c95b;
+  color: #123118;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+/* ---------------------------------
+   BUYER NEGOTIATION
+--------------------------------- */
+
+.scene-buyer {
+  min-height: 100vh;
+  padding: 140px 6%;
+  background:
+    radial-gradient(circle at 75% 35%, rgba(126, 220, 100, 0.10), transparent 25%),
+    linear-gradient(180deg, #eef4eb, #e4eee0);
+  color: #122518;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 70px;
+  align-items: center;
+}
+
+.buyer-copy {
+  max-width: 650px;
+}
+
+.buyer-copy > p:not(.eyebrow) {
+  max-width: 570px;
+  color: #627064;
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.buyer-card {
+  width: min(520px, 100%);
+  justify-self: end;
+  padding: 30px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(76, 150, 75, 0.18);
+  box-shadow: 0 25px 70px rgba(22, 68, 33, 0.12);
+}
+
+.buyer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.buyer-header h3 {
+  margin: 10px 0 0;
+  font-size: 25px;
+}
+
+.offer-status {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #eaf6e5;
+  color: #4f9652;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+}
+
+.offer-details {
+  margin: 30px 0;
+  display: grid;
+  gap: 12px;
+}
+
+.offer-details > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 17px;
+  border-radius: 16px;
+  background: #f7faf5;
+  border: 1px solid #e0e9dc;
+}
+
+.offer-details span {
+  color: #718073;
+  font-size: 13px;
+}
+
+.offer-details strong {
+  color: #15321e;
+  font-size: 20px;
+}
+
+.buyer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.buyer-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 18px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.buyer-button.accept {
+  background: #79ce5f;
+  color: #123018;
+}
+
+.buyer-button.counter {
+  background: #173c27;
+  color: #fff;
+}
+
+.counter-box {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  background: #f7faf5;
+  border: 1px solid #e0e9dc;
+}
+
+.counter-box label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.counter-box input {
+  padding: 13px;
+  border: 1px solid #d8e4d3;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.counter-box .buyer-button {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.offer-message {
+  margin: 18px 0 0;
+  color: #55735a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .scene-buyer {
+    grid-template-columns: 1fr;
+  }
+
+  .buyer-card {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 600px) {
+  .buyer-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------
+   NEGOTIATION HISTORY
+--------------------------------- */
+
+.offer-history {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 18px;
+  background: #f7faf5;
+  border: 1px solid #e0e9dc;
+}
+
+#offerHistory {
+  margin-top: 12px;
+  color: #536457;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e1e9de;
+}
+
+.history-item:last-child {
+  border-bottom: 0;
+}
+
+.history-status {
+  font-weight: 800;
+  color: #4e9652;
 }

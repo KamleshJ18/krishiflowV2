@@ -2,29 +2,63 @@ from flask import Flask, jsonify, request, send_from_directory
 from pathlib import Path
 import sqlite3
 import requests
+import math
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "krishiflow.db"
 
 app = Flask(__name__)
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """
+    Calculate approximate distance between two coordinates in kilometers.
+    """
+
+    earth_radius = 6371
+
+    lat1 = math.radians(lat1)
+    lat2 = math.radians(lat2)
+
+    lat_difference = math.radians(lat2 - lat1)
+    lon_difference = math.radians(lon2 - lon1)
+
+    a = (
+        math.sin(lat_difference / 2) ** 2
+        + math.cos(lat1)
+        * math.cos(lat2)
+        * math.sin(lon_difference / 2) ** 2
+    )
+
+    c = 2 * math.atan2(
+        math.sqrt(a),
+        math.sqrt(1 - a)
+    )
+
+    return round(earth_radius * c, 1)
+
 STORAGE_OPTIONS = [
     {
         "name": "GreenGrain Warehouse",
-        "distance_km": 8,
+        "latitude": 26.9124,
+        "longitude": 75.7873,
         "price_per_kg_day": 1.80,
         "suitable_for": ["Wheat", "Onion", "Potato"],
         "description": "Suitable for dry grain storage"
     },
+
     {
         "name": "AgriSafe Depot",
-        "distance_km": 12,
+        "latitude": 26.8950,
+        "longitude": 75.8120,
         "price_per_kg_day": 2.10,
         "suitable_for": ["Wheat", "Tomato", "Onion", "Potato"],
         "description": "Covered storage with transport support"
     },
+
     {
         "name": "FarmerSafe Storage",
-        "distance_km": 15,
+        "latitude": 26.9400,
+        "longitude": 75.7700,
         "price_per_kg_day": 1.60,
         "suitable_for": ["Wheat", "Potato"],
         "description": "Affordable covered storage"
@@ -54,6 +88,24 @@ def init_db():
             location TEXT NOT NULL
         )
     """)
+
+    connection.execute("""
+    CREATE TABLE IF NOT EXISTS offers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        crop TEXT NOT NULL,
+        quantity REAL NOT NULL,
+        expected_price REAL NOT NULL,
+        buyer_offer REAL NOT NULL,
+        status TEXT NOT NULL
+    )
+    """)
+
+    try:
+        connection.execute(
+            "ALTER TABLE offers ADD COLUMN counter_price REAL"
+        )
+    except sqlite3.OperationalError:
+        pass
 
     connection.commit()
     connection.close()
@@ -332,11 +384,30 @@ def analyze():
     # -----------------------------
 
     
-    storage_options = [
-        storage
-        for storage in STORAGE_OPTIONS
-        if crop in storage["suitable_for"]
-    ]
+    storage_options = []
+
+    for storage in STORAGE_OPTIONS:
+
+        if crop not in storage["suitable_for"]:
+            continue
+
+        distance = calculate_distance(
+            weather["latitude"],
+            weather["longitude"],
+            storage["latitude"],
+            storage["longitude"]
+        )
+
+        storage_copy = storage.copy()
+
+        storage_copy["distance_km"] = distance
+
+        storage_options.append(storage_copy)
+
+
+    storage_options.sort(
+        key=lambda storage: storage["distance_km"]
+    )
 
     return jsonify({
         "crop": crop,
@@ -381,6 +452,125 @@ def get_produce():
         for row in rows
     ])
 
+@app.post("/api/offer")
+def create_offer():
+
+    data = request.get_json() or {}
+
+    crop = data.get("crop", "Wheat")
+    quantity = float(data.get("quantity", 0))
+    expected_price = float(data.get("expected_price", 0))
+
+    # Demo buyer offer
+    buyer_price = {
+        "Wheat": 27,
+        "Tomato": 24,
+        "Onion": 20,
+        "Potato": 21
+    }.get(crop, 25)
+
+    connection = get_db()
+
+    connection.execute(
+        """
+        INSERT INTO offers
+        (crop, quantity, expected_price, buyer_offer, status)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (
+            crop,
+            quantity,
+            expected_price,
+            buyer_price,
+            "PENDING"
+        )
+    )
+
+    connection.commit()
+    connection.close()
+
+    return jsonify({
+        "crop": crop,
+        "quantity": quantity,
+        "expected_price": expected_price,
+        "buyer_offer": buyer_price,
+        "difference": round(expected_price - buyer_price, 2),
+        "status": "PENDING",
+        "demo_data": True
+    })
+
+@app.get("/api/offers")
+def get_offers():
+
+    connection = get_db()
+
+    rows = connection.execute(
+        """
+        SELECT *
+        FROM offers
+        ORDER BY id DESC
+        """
+    ).fetchall()
+
+    connection.close()
+
+    return jsonify([
+        dict(row)
+        for row in rows
+    ])
+
+@app.post("/api/offer/status")
+def update_offer_status():
+
+    data = request.get_json() or {}
+
+    crop = data.get("crop", "Wheat")
+    status = data.get("status", "PENDING")
+    counter_price = data.get("counter_price")
+
+    if status not in ["ACCEPTED", "COUNTERED"]:
+        return jsonify({
+            "error": "Invalid offer status."
+        }), 400
+
+    connection = get_db()
+
+    connection.execute(
+        """
+        UPDATE offers
+        SET status = ?, counter_price = ?
+        WHERE id = (
+            SELECT id
+            FROM offers
+            WHERE crop = ?
+            ORDER BY id DESC
+            LIMIT 1
+        )
+        """,
+        (status, counter_price, crop)
+    )
+
+    connection.commit()
+
+    row = connection.execute(
+        """
+        SELECT *
+        FROM offers
+        WHERE crop = ?
+        ORDER BY id DESC
+        LIMIT 1
+        """,
+        (crop,)
+    ).fetchone()
+
+    connection.close()
+
+    if row is None:
+        return jsonify({
+            "error": "No offer found."
+        }), 404
+
+    return jsonify(dict(row))
 
 # -----------------------------
 # START SERVER

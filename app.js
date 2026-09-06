@@ -163,6 +163,23 @@ if (result.storage_options) {
 
       const card = storageCards[index];
 
+      // Remove an old label if one exists
+      const oldLabel = card.querySelector(".best-match-label");
+
+      if (oldLabel) {
+        oldLabel.remove();
+      }
+
+      // Add BEST MATCH to the closest storage
+      if (index === 0) {
+        const label = document.createElement("div");
+
+        label.className = "best-match-label";
+        label.textContent = "⭐ BEST MATCH";
+
+        card.prepend(label);
+      }
+
       card.querySelector("h3").textContent =
         storage.name;
 
@@ -183,8 +200,20 @@ const storageSection =
 if (storageSection) {
   if (result.action === "STORE") {
     storageSection.style.display = "block";
+    const bestLabel =
+      document.getElementById("bestStorageLabel");
+
+    if (bestLabel) {
+      bestLabel.style.display = "block";
+    }
   } else {
     storageSection.style.display = "none";
+    const bestLabel =
+      document.getElementById("bestStorageLabel");
+
+    if (bestLabel) {
+      bestLabel.style.display = "none";
+    }
   }
 }
 
@@ -365,3 +394,403 @@ window.addEventListener(
 );
 
 updateProgress();
+
+// ---------------------------------
+// BUYER NEGOTIATION
+// ---------------------------------
+
+const acceptOfferButton =
+  document.getElementById("acceptOffer");
+
+const counterOfferButton =
+  document.getElementById("counterOffer");
+
+const counterBox =
+  document.getElementById("counterBox");
+
+const sendCounterButton =
+  document.getElementById("sendCounter");
+
+const offerMessage =
+  document.getElementById("offerMessage");
+
+
+// Get buyer offer from Python
+async function loadBuyerOffer() {
+
+  const crop =
+    $("crop").value;
+
+  const quantity =
+    Number($("qty").value);
+
+  const expectedPrice =
+    Number($("expectedPrice").value);
+
+  try {
+
+    // Ask Python for the current buyer offer.
+    // This creates the offer only when we actually need one.
+    const response = await fetch(
+      "/api/offer",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          crop: crop,
+          quantity: quantity,
+          expected_price: expectedPrice
+        })
+      }
+    );
+
+    const result =
+      await response.json();
+
+    const statusElement =
+      document.getElementById("offerStatus");
+
+    if (statusElement && result.status) {
+      statusElement.textContent =
+        result.status;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        result.error ||
+        "Could not get buyer offer."
+      );
+    }
+
+    $("buyerExpected").textContent =
+      `₹${result.expected_price}/kg`;
+
+    $("buyerOffer").textContent =
+      `₹${result.buyer_offer}/kg`;
+
+    $("buyerDifference").textContent =
+      `₹${Math.max(0, result.difference)}/kg`;
+
+    return result;
+
+  } catch (error) {
+
+    console.error(error);
+
+    offerMessage.textContent =
+      "Could not connect to the buyer service.";
+
+    return null;
+  }
+}
+
+
+// Accept offer
+if (acceptOfferButton) {
+
+  acceptOfferButton.addEventListener(
+    "click",
+    async () => {
+
+      const offer =
+        await loadBuyerOffer();
+
+      if (!offer) {
+        return;
+      }
+
+      try {
+
+        const response = await fetch(
+          "/api/offer/status",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+              crop: $("crop").value,
+              status: "ACCEPTED"
+            })
+          }
+        );
+
+        const result =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.error ||
+            "Could not accept offer."
+          );
+        }
+
+        offerMessage.textContent =
+          "✅ Offer accepted successfully.";
+
+        await loadOfferHistory();
+
+      } catch (error) {
+
+        console.error(error);
+
+        offerMessage.textContent =
+          "Could not update the offer.";
+      }
+    }
+  );
+}
+
+
+// Show counter offer box
+if (counterOfferButton) {
+
+  counterOfferButton.addEventListener(
+    "click",
+    async () => {
+
+      await loadBuyerOffer();
+
+      counterBox.style.display =
+        "block";
+
+      offerMessage.textContent =
+        "Enter the price you would like to offer back.";
+
+    }
+  );
+
+}
+
+
+// Send counter offer
+if (sendCounterButton) {
+
+  sendCounterButton.addEventListener(
+    "click",
+    async () => {
+
+      const counterPrice =
+        Number(
+          $("counterPrice").value
+        );
+
+      if (!counterPrice || counterPrice <= 0) {
+
+        offerMessage.textContent =
+          "Please enter a valid counter price.";
+
+        return;
+      }
+
+      try {
+
+        const response = await fetch(
+          "/api/offer/status",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+              crop: $("crop").value,
+              status: "COUNTERED",
+              counter_price: counterPrice
+            })
+          }
+        );
+
+        const result =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.error ||
+            "Could not save counter offer."
+          );
+        }
+
+        offerMessage.textContent =
+          `📨 Counter offer of ₹${counterPrice}/kg recorded.`;
+
+        await loadOfferHistory();
+
+      } catch (error) {
+
+        console.error(error);
+
+        offerMessage.textContent =
+          "Could not save the counter offer.";
+      }
+    }
+  );
+}
+
+// ---------------------------------
+// LOAD NEGOTIATION HISTORY
+// ---------------------------------
+
+async function loadOfferHistory() {
+
+  try {
+
+    const response =
+      await fetch("/api/offers");
+
+    const offers =
+      await response.json();
+
+    const history =
+      document.getElementById("offerHistory");
+
+    if (!history) return;
+
+    if (!offers.length) {
+
+      history.textContent =
+        "No negotiation activity yet.";
+
+      return;
+    }
+
+    history.innerHTML = "";
+
+    offers.slice(0, 5).forEach((offer) => {
+
+      const item =
+        document.createElement("div");
+
+      item.className =
+        "history-item";
+
+      item.innerHTML = `
+        <span>
+          Buyer: ₹${offer.buyer_offer}/kg
+          ${
+            offer.counter_price
+              ? `<br>Your counter: ₹${offer.counter_price}/kg`
+              : ""
+          }
+        </span>
+
+        <span class="history-status">
+          ${offer.status}
+        </span>
+      `;
+
+      history.appendChild(item);
+
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Could not load offer history:",
+      error
+    );
+
+  }
+}
+
+loadOfferHistory();
+
+// ---------------------------------
+// LOAD PRODUCE HISTORY
+// ---------------------------------
+
+async function loadProduceHistory() {
+
+  const history =
+    document.getElementById("produceHistory");
+
+  if (!history) {
+    console.log("produceHistory element not found");
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch("/api/produce");
+
+    const produce =
+      await response.json();
+
+    console.log("Produce records:", produce);
+
+    if (!Array.isArray(produce) || produce.length === 0) {
+
+      history.innerHTML = `
+        <p class="empty-history">
+          No produce analyzed yet.
+        </p>
+      `;
+
+      return;
+    }
+
+    history.innerHTML = "";
+
+    produce.slice(0, 8).forEach((item) => {
+
+      const row =
+        document.createElement("div");
+
+      row.className =
+        "produce-history-item";
+
+      row.innerHTML = `
+        <div>
+          <strong>🌾 ${item.crop || "Unknown crop"}</strong>
+          <br>
+          <span>
+            ${item.location || "Location not saved"}
+          </span>
+        </div>
+
+        <div>
+          <span>Quantity</span>
+          <br>
+          <strong>${item.quantity || 0} kg</strong>
+        </div>
+
+        <div>
+          <span>Target price</span>
+          <br>
+          <strong>₹${item.expected_price || 0}/kg</strong>
+        </div>
+
+        <div>
+          <span>Quality</span>
+          <br>
+          <strong>${item.quality || "Unknown"}</strong>
+        </div>
+      `;
+
+      history.appendChild(row);
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Could not load produce history:",
+      error
+    );
+
+    history.innerHTML = `
+      <p class="empty-history">
+        Could not load produce history.
+      </p>
+    `;
+  }
+}
+
+loadProduceHistory();
