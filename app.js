@@ -1,153 +1,367 @@
 const $ = (id) => document.getElementById(id);
 
+// -----------------------------
+// Animated rain
+// -----------------------------
 const rainLayer = $("rainLayer");
+
 for (let i = 0; i < 28; i++) {
-  const d = document.createElement("i");
-  d.className = "rain";
-  d.style.left = `${Math.random() * 100}%`;
-  d.style.animationDelay = `${Math.random() * 1.8}s`;
-  d.style.animationDuration = `${1.0 + Math.random() * 0.9}s`;
-  rainLayer.appendChild(d);
+  const rain = document.createElement("i");
+
+  rain.className = "rain";
+  rain.style.left = `${Math.random() * 100}%`;
+  rain.style.animationDelay = `${Math.random() * 2}s`;
+  rain.style.animationDuration = `${1 + Math.random()}s`;
+
+  rainLayer.appendChild(rain);
 }
 
+// -----------------------------
+// Floating leaves / particles
+// -----------------------------
 const particleLayer = $("particleLayer");
+
 for (let i = 0; i < 10; i++) {
-  const p = document.createElement("span");
-  p.className = "particle";
-  p.style.left = `${Math.random() * 80 + 10}%`;
-  p.style.top = `${Math.random() * 75 + 10}%`;
-  p.style.animationDelay = `${Math.random() * -8}s`;
-  p.style.animationDuration = `${7 + Math.random() * 5}s`;
-  particleLayer.appendChild(p);
+  const particle = document.createElement("span");
+
+  particle.className = "particle";
+  particle.style.left = `${Math.random() * 80 + 10}%`;
+  particle.style.top = `${Math.random() * 70 + 10}%`;
+  particle.style.animationDelay = `${Math.random() * -8}s`;
+  particle.style.animationDuration = `${7 + Math.random() * 5}s`;
+
+  particleLayer.appendChild(particle);
 }
 
-const state = {
-  crop: "Wheat",
-  qty: 500,
-  quality: "Good",
-  expectedPrice: 30,
-  referencePrice: 24,
-  humidity: 78,
-  temperature: 23,
-  rainRisk: "Moderate"
-};
+// -----------------------------
+// CONNECT FRONTEND TO PYTHON
+// -----------------------------
+$("produceForm").addEventListener("submit", async (event) => {
 
-function syncProfile() {
-  $("profileCrop").textContent = state.crop;
-  $("profileQty").textContent = `${state.qty} kg`;
-  $("profileQuality").textContent = state.quality;
-  $("profilePrice").textContent = `₹${state.expectedPrice}/kg`;
-  $("targetPrice").textContent = `₹${state.expectedPrice}/kg`;
-  $("refPrice").textContent = `₹${state.referencePrice}/kg`;
-  $("priceGap").textContent = `₹${Math.max(0, state.expectedPrice - state.referencePrice)}/kg`;
-  $("decisionCrop").textContent = state.crop;
-  $("decisionHumidity").textContent = `${state.humidity}%`;
-  $("decisionGap").textContent = `₹${Math.max(0, state.expectedPrice - state.referencePrice)}/kg`;
-  $("humidBig").textContent = `${state.humidity}%`;
-  $("tempBig").textContent = `${state.temperature}°C`;
-  $("rainBig").textContent = state.rainRisk;
-}
+  // Stop the browser from refreshing the page
+  event.preventDefault();
 
-function calculateDecision() {
-  const gap = state.expectedPrice - state.referencePrice;
-  if (state.quality === "Needs Attention") {
-    return {
-      action: "ATTENTION",
-      icon: "!",
-      reason: "The produce is marked as needing attention. Inspect quality and handling before choosing a sale or storage path."
-    };
-  }
-  if (gap <= 1 && state.humidity < 70) {
-    return {
-      action: "SELL",
-      icon: "↗",
-      reason: "The market reference is close to the target and humidity risk is lower in this demo scenario."
-    };
-  }
-  if (gap > 1 && state.humidity >= 75) {
-    return {
-      action: "STORE",
-      icon: "⌂",
-      reason: "The reference price is below the target while humidity is elevated. Compare safe storage options before waiting for a better price."
-    };
-  }
-  if (gap > 1 && state.humidity < 75) {
-    return {
-      action: "STORE",
-      icon: "⌂",
-      reason: "The price is below the target and current demo weather risk is not severe. Storage can be considered if the produce is suitable."
-    };
-  }
-  return {
-    action: "SELL SOON",
-    icon: "↗",
-    reason: "The market signal is reasonably close to the target. Re-check weather and price before holding for longer."
+  // Get values from the form
+  const payload = {
+    crop: $("crop").value,
+    quantity: Number($("qty").value),
+    quality: $("quality").value,
+    expected_price: Number($("expectedPrice").value),
+    location: $("location").value.trim()
   };
+
+  console.log("Sending to Python:", payload);
+
+  try {
+
+    // Send the form data to Flask
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify(payload)
+    });
+
+    // Receive Python's response
+    const result = await response.json();
+
+    console.log("Python response:", result);
+
+    if (!response.ok) {
+      throw new Error(result.error || "Backend error");
+    }
+
+    // -----------------------------
+    // Update Produce section
+    // -----------------------------
+    $("profileCrop").textContent = result.crop;
+
+    $("profileQty").textContent =
+      `${result.quantity} kg`;
+
+    $("profileQuality").textContent =
+      result.quality;
+
+    $("profilePrice").textContent =
+      `₹${result.expected_price}/kg`;
+
+
+    // -----------------------------
+    // Update Weather section
+    // -----------------------------
+    $("humidBig").textContent =
+      `${result.humidity}%`;
+
+    $("tempBig").textContent =
+      `${result.temperature}°C`;
+
+    $("rainBig").textContent =
+      result.rain_risk;
+    
+    const rainCard = document.querySelector(
+      ".metric:nth-child(3) small"
+    );
+
+    if (rainCard) {
+      rainCard.textContent =
+        `Rain probability: ${result.rain_probability}%`;
+    }
+
+
+    // -----------------------------
+    // Update Market section
+    // -----------------------------
+    $("targetPrice").textContent =
+      `₹${result.expected_price}/kg`;
+
+    $("refPrice").textContent =
+      `₹${result.reference_price}/kg`;
+
+    $("marketPrice").textContent =
+      result.reference_price;
+
+    $("priceGap").textContent =
+      `₹${Math.max(0, result.price_gap)}/kg`;
+
+
+    // -----------------------------
+    // Update Decision section
+    // -----------------------------
+    $("decisionCrop").textContent =
+      result.crop;
+
+    $("decisionHumidity").textContent =
+      `${result.humidity}%`;
+
+    $("decisionGap").textContent =
+      `₹${Math.max(0, result.price_gap)}/kg`;
+
+    $("decisionAction").textContent =
+      result.action;
+
+    $("decisionReason").textContent =
+      result.reason;
+    // -----------------------------
+// UPDATE STORAGE FROM BACKEND
+// -----------------------------
+
+const storageCards =
+  document.querySelectorAll(".storage-card");
+
+if (result.storage_options) {
+
+  result.storage_options
+    .slice(0, 2)
+    .forEach((storage, index) => {
+
+      if (!storageCards[index]) {
+        return;
+      }
+
+      const card = storageCards[index];
+
+      card.querySelector("h3").textContent =
+        storage.name;
+
+      card.querySelector("p").textContent =
+        storage.description;
+
+      card.querySelector(".storage-meta").innerHTML = `
+        <span>📍 ${storage.distance_km} km</span>
+        <span>₹${storage.price_per_kg_day}/kg/day</span>
+      `;
+
+    });
 }
 
-function renderDecision() {
-  const d = calculateDecision();
-  $("decisionAction").textContent = d.action;
-  $("decisionIcon").textContent = d.icon;
-  $("decisionReason").textContent = d.reason;
+const storageSection =
+  document.querySelector(".scene-storage");
 
-  const heroIsHigh = state.humidity >= 80;
-  $("heroRisk").textContent = heroIsHigh ? "High Risk" : state.humidity >= 75 ? "Moderate Risk" : "Lower Risk";
-  $("heroWeatherTitle").textContent = state.rainRisk === "High" ? "Rain Risk" : state.rainRisk === "Moderate" ? "Light Rain" : "Clear Window";
-  $("heroHumidity").textContent = `${state.humidity}%`;
-  $("heroTemp").textContent = `${state.temperature}°C`;
-  $("heroWeatherIcon").textContent = state.rainRisk === "High" ? "🌧️" : state.rainRisk === "Moderate" ? "🌦️" : "☀️";
-
-  const high = heroIsHigh || state.rainRisk === "High";
-  $("riskTitle").textContent = high ? "High post-harvest risk" : "Moderate humidity risk";
-  $("riskBody").textContent = high
-    ? "Conditions may become less suitable for holding moisture-sensitive produce. Compare price versus safe storage before waiting."
-    : "Humidity is elevated enough to matter for some produce. Use the market signal together with the weather before choosing to wait.";
+if (storageSection) {
+  if (result.action === "STORE") {
+    storageSection.style.display = "block";
+  } else {
+    storageSection.style.display = "none";
+  }
 }
 
-$("produceForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-  state.crop = $("crop").value;
-  state.qty = Math.max(1, Number($("qty").value) || 1);
-  state.quality = $("quality").value;
-  state.expectedPrice = Math.max(0, Number($("expectedPrice").value) || 0);
+    // -----------------------------
+    // Update hero weather card
+    // -----------------------------
+    $("heroHumidity").textContent =
+      `${result.humidity}%`;
 
-  // Demo-only values: deliberately visible as prototype signals.
-  const demo = {
-    Wheat: { referencePrice: 24, humidity: 78, temperature: 23, rainRisk: "Moderate" },
-    Tomato: { referencePrice: 26, humidity: 83, temperature: 24, rainRisk: "High" },
-    Onion: { referencePrice: 22, humidity: 81, temperature: 22, rainRisk: "High" },
-    Potato: { referencePrice: 23, humidity: 73, temperature: 21, rainRisk: "Moderate" }
-  };
-  Object.assign(state, demo[state.crop]);
+    $("weatherCity").textContent =
+      result.city;
 
-  syncProfile();
-  renderDecision();
-  document.querySelector("#weather").scrollIntoView({behavior:"smooth"});
+    $("suggestedTime").textContent =
+      result.suggested_time;
+
+    $("heroTemp").textContent =
+      `${result.temperature}°C`;
+
+    $("weatherCity").textContent =
+      result.city;
+
+    $("suggestedTime").textContent =
+      result.suggested_time;
+
+    if (result.rain_risk === "High") {
+
+      $("heroWeatherTitle").textContent =
+        "Rain Risk";
+
+      $("heroWeatherIcon").textContent =
+        "🌧️";
+
+      $("heroRisk").textContent =
+        "High Risk";
+
+    } else if (result.rain_risk === "Moderate") {
+
+      $("heroWeatherTitle").textContent =
+        "Light Rain";
+
+      $("heroWeatherIcon").textContent =
+        "🌦️";
+
+      $("heroRisk").textContent =
+        "Moderate Risk";
+
+    } else {
+
+      $("heroWeatherTitle").textContent =
+        "Clear Window";
+
+      $("heroWeatherIcon").textContent =
+        "☀️";
+
+      $("heroRisk").textContent =
+        "Lower Risk";
+    }
+
+
+    // -----------------------------
+    // Update risk message
+    // -----------------------------
+    if (result.humidity >= 80 || result.rain_risk === "High") {
+
+      $("riskTitle").textContent =
+        "High post-harvest risk";
+
+      $("riskBody").textContent =
+        "Humidity and weather conditions may increase post-harvest risk. Compare market price with safe storage options.";
+
+    } else {
+
+      $("riskTitle").textContent =
+        "Moderate humidity risk";
+
+      $("riskBody").textContent =
+        "Weather conditions should be considered together with market price before deciding whether to sell or store.";
+    }
+
+
+    // -----------------------------
+    // Move to weather section
+    // -----------------------------
+    document
+      .querySelector("#weather")
+      .scrollIntoView({
+        behavior: "smooth"
+      });
+
+  } catch (error) {
+
+    console.error("Connection error:", error);
+
+    alert(
+      "KrishiFlow could not connect to the Python backend.\n\n" +
+      error.message
+    );
+  }
 });
 
-document.querySelectorAll(".decision-options button").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const map = {
-      SELL: ["SELL", "↗", "Farmer chooses to move toward selling now."],
-      STORE: ["STORE", "⌂", "Farmer chooses to explore suitable storage options."],
-      PROCESS: ["PROCESS", "✦", "Farmer chooses to consider processing instead of immediate sale."],
-      ATTENTION: ["ATTENTION", "!", "Farmer chooses to inspect or handle the produce before deciding."]
-    };
-    const [action, icon, reason] = map[btn.dataset.action];
-    $("decisionAction").textContent = action;
-    $("decisionIcon").textContent = icon;
-    $("decisionReason").textContent = reason;
+
+// -----------------------------
+// Manual decision buttons
+// -----------------------------
+document
+  .querySelectorAll(".decision-options button")
+  .forEach((button) => {
+
+    button.addEventListener("click", () => {
+
+      const action = button.dataset.action;
+
+      if (action === "SELL") {
+
+        $("decisionAction").textContent = "SELL";
+        $("decisionIcon").textContent = "↗";
+        $("decisionReason").textContent =
+          "Farmer chooses to move toward selling now.";
+
+      }
+
+      if (action === "STORE") {
+
+        $("decisionAction").textContent = "STORE";
+        $("decisionIcon").textContent = "⌂";
+        $("decisionReason").textContent =
+          "Farmer chooses to explore suitable storage options.";
+
+      }
+
+      if (action === "PROCESS") {
+
+        $("decisionAction").textContent = "PROCESS";
+        $("decisionIcon").textContent = "✦";
+        $("decisionReason").textContent =
+          "Farmer chooses to consider processing instead of immediate sale.";
+
+      }
+
+      if (action === "ATTENTION") {
+
+        $("decisionAction").textContent = "ATTENTION";
+        $("decisionIcon").textContent = "!";
+        $("decisionReason").textContent =
+          "Farmer chooses to inspect or handle the produce before deciding.";
+
+      }
+
+    });
+
   });
-});
 
+
+// -----------------------------
+// Scroll progress bar
+// -----------------------------
 function updateProgress() {
-  const scrollTop = window.scrollY;
-  const total = document.documentElement.scrollHeight - window.innerHeight;
-  $("progress").style.width = `${total ? (scrollTop / total) * 100 : 0}%`;
-}
-window.addEventListener("scroll", updateProgress, {passive:true});
 
-syncProfile();
-renderDecision();
+  const scrollTop = window.scrollY;
+
+  const total =
+    document.documentElement.scrollHeight -
+    window.innerHeight;
+
+  const percentage =
+    total > 0
+      ? (scrollTop / total) * 100
+      : 0;
+
+  $("progress").style.width =
+    `${percentage}%`;
+}
+
+window.addEventListener(
+  "scroll",
+  updateProgress,
+  { passive: true }
+);
+
 updateProgress();

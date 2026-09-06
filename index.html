@@ -127,6 +127,14 @@
             <label>Expected selling price (₹/kg)
               <input id="expectedPrice" type="number" value="30" min="0" />
             </label>
+            <label>Farm Location
+              <input
+                id="location"
+                type="text"
+                value="Jaipur"
+                placeholder="Enter your city"
+              />
+            </label>
             <button class="btn btn-primary" type="submit">Continue to Weather <span>→</span></button>
           </form>
         </div>
@@ -153,21 +161,25 @@
 
       <div class="weather-dashboard">
         <div class="metric glass-card">
-          <span>HUMIDITY</span><strong id="humidBig">78%</strong><small>current demo value</small>
+          <span>HUMIDITY</span><strong id="humidBig">78%</strong><small>Current forecast</small>
         </div>
         <div class="metric glass-card">
-          <span>TEMPERATURE</span><strong id="tempBig">23°C</strong><small>current demo value</small>
+          <span>TEMPERATURE</span><strong id="tempBig">23°C</strong><small>Current forecast</small>
         </div>
         <div class="metric glass-card">
-          <span>RAIN RISK</span><strong id="rainBig">Moderate</strong><small>prototype indicator</small>
+          <span>RAIN RISK</span><strong id="rainBig">Moderate</strong><small>Weather forecast</small>
         </div>
       </div>
 
       <div class="weather-alert glass-card">
         <div class="alert-icon">!</div>
         <div>
-          <small>POST-HARVEST RISK</small>
+          <small>POST-HARVEST RISK • <span id="weatherCity">Jaipur</span></small>
           <h3 id="riskTitle">Moderate humidity risk</h3>
+          <div class="suggested-window">
+            <span>Suggested safer window</span>
+            <strong id="suggestedTime">—</strong>
+          </div>
           <p id="riskBody">Humidity may become an issue for moisture-sensitive produce. Consider the market price before deciding whether to store.</p>
         </div>
       </div>
