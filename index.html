@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KrishiFlow — Make Every Harvest Count</title>
+  <meta name="description" content="KrishiFlow helps farmers make smarter post-harvest decisions using produce details, weather risk, market prices and storage options." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="grain-noise"></div>
+  <div class="top-progress"><span id="progress"></span></div>
+
+  <header class="site-nav">
+    <a class="logo" href="#home" aria-label="KrishiFlow home">
+      <span class="logo-mark"></span>
+      <span>Krishi<span>Flow</span></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#produce">How It Works</a>
+      <a href="#weather">Weather</a>
+      <a href="#decision">Decision</a>
+      <a href="#storage">Storage</a>
+    </nav>
+    <a class="nav-cta" href="#produce">Get Started <span>→</span></a>
+  </header>
+
+  <main id="home">
+    <section class="scene scene-hero" data-scene="hero">
+      <div class="ambient a-left"></div>
+      <div class="ambient a-right"></div>
+      <div class="sun"></div>
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="rain-layer" id="rainLayer"></div>
+      <div class="particle-layer" id="particleLayer"></div>
+
+      <div class="hero-copy">
+        <p class="eyebrow">SMART AGRICULTURE • POST-HARVEST DECISION SUPPORT</p>
+        <h1>Make Every<br><span>Harvest Count.</span></h1>
+        <p class="lead">KrishiFlow combines crop details, weather risk, market prices and storage options into one simple decision journey for farmers.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#produce">Analyze My Produce <span>→</span></a>
+          <a class="btn btn-ghost" href="#produce">Explore KrishiFlow</a>
+        </div>
+      </div>
+
+      <div class="hero-card glass-card">
+        <div class="card-label">LIVE WEATHER</div>
+        <div class="risk-pill" id="heroRisk">Moderate Risk</div>
+        <div class="weather-row">
+          <div class="weather-symbol" id="heroWeatherIcon">☁️</div>
+          <div>
+            <h3 id="heroWeatherTitle">Light Rain</h3>
+            <p><span id="heroTemp">23°C</span> <span class="muted-dot">•</span> Humidity <span id="heroHumidity">78%</span></p>
+            <p class="small">Conditions can affect post-harvest handling.</p>
+          </div>
+        </div>
+        <a class="mini-link" href="#weather">View detailed forecast <span>→</span></a>
+      </div>
+
+      <div class="wheat-scene" aria-hidden="true">
+        <svg class="wheat-svg" viewBox="0 0 260 720" role="img">
+          <defs>
+            <linearGradient id="stem" x1="0" x2="1">
+              <stop offset="0" stop-color="#b9dd66"/>
+              <stop offset="1" stop-color="#f2c76b"/>
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="4" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <g class="wheat-g">
+            <path class="stem" d="M128 710 C126 590, 127 430, 132 245 C136 150, 147 86, 158 28" />
+            <g class="leaf leaf-a"><path d="M128 552 C82 523, 53 495, 40 462 C78 477, 102 501, 128 532Z"/></g>
+            <g class="leaf leaf-b"><path d="M130 460 C174 432, 199 402, 212 365 C174 379, 148 408, 130 441Z"/></g>
+            <g class="leaf leaf-c"><path d="M130 368 C92 345, 66 319, 54 286 C90 299, 111 321, 130 348Z"/></g>
+            <g class="head" filter="url(#glow)">
+              <path d="M160 34 C132 74, 131 126, 147 183 C157 147, 171 113, 177 73 C176 55, 170 42, 160 34Z"/>
+              <g class="kernels">
+                <ellipse cx="149" cy="67" rx="8" ry="14"/><ellipse cx="165" cy="60" rx="8" ry="14"/>
+                <ellipse cx="146" cy="95" rx="8" ry="14"/><ellipse cx="169" cy="88" rx="8" ry="14"/>
+                <ellipse cx="146" cy="122" rx="8" ry="14"/><ellipse cx="172" cy="116" rx="8" ry="14"/>
+                <ellipse cx="148" cy="149" rx="8" ry="14"/><ellipse cx="168" cy="144" rx="8" ry="14"/>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <div class="hero-bottom">
+        <div><strong>SIH Prototype</strong><span>Student innovation project</span></div>
+        <div><strong>Weather + Market</strong><span>Decision support concept</span></div>
+        <div><strong>Storage Discovery</strong><span>Find practical next steps</span></div>
+      </div>
+
+      <a class="scroll-cue" href="#produce"><span class="mouse"></span> Scroll to explore <span>↓</span></a>
+    </section>
+
+    <section class="scene scene-light" id="produce" data-scene="produce">
+      <div class="section-inner two-col">
+        <div class="section-copy">
+          <p class="eyebrow dark">01 • KNOW YOUR HARVEST</p>
+          <h2>Start with what<br><span>you actually have.</span></h2>
+          <p>Enter the basic details of the harvested produce. The prototype uses this information as the first layer of the decision engine.</p>
+          <form id="produceForm" class="produce-form">
+            <label>Crop
+              <select id="crop">
+                <option>Wheat</option>
+                <option>Tomato</option>
+                <option>Onion</option>
+                <option>Potato</option>
+              </select>
+            </label>
+            <label>Quantity (kg)
+              <input id="qty" type="number" value="500" min="1" />
+            </label>
+            <label>Quality
+              <select id="quality">
+                <option>Good</option>
+                <option>Average</option>
+                <option>Needs Attention</option>
+              </select>
+            </label>
+            <label>Expected selling price (₹/kg)
+              <input id="expectedPrice" type="number" value="30" min="0" />
+            </label>
+            <button class="btn btn-primary" type="submit">Continue to Weather <span>→</span></button>
+          </form>
+        </div>
+        <div class="floating-detail">
+          <div class="grain-ring"></div>
+          <div class="detail-card glass-card light-glass">
+            <span class="tag">PRODUCE PROFILE</span>
+            <h3 id="profileCrop">Wheat</h3>
+            <div class="detail-line"><span>Quantity</span><strong id="profileQty">500 kg</strong></div>
+            <div class="detail-line"><span>Quality</span><strong id="profileQuality">Good</strong></div>
+            <div class="detail-line"><span>Expected price</span><strong id="profilePrice">₹30/kg</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene scene-weather" id="weather" data-scene="weather">
+      <div class="weather-backdrop"></div>
+      <div class="weather-copy">
+        <p class="eyebrow">02 • WATCH THE CONDITIONS</p>
+        <h2>Weather can change<br><span>the post-harvest plan.</span></h2>
+        <p>For the prototype, weather and humidity act as a risk signal. We intentionally show the inputs and the reasoning instead of hiding everything behind a black-box result.</p>
+      </div>
+
+      <div class="weather-dashboard">
+        <div class="metric glass-card">
+          <span>HUMIDITY</span><strong id="humidBig">78%</strong><small>current demo value</small>
+        </div>
+        <div class="metric glass-card">
+          <span>TEMPERATURE</span><strong id="tempBig">23°C</strong><small>current demo value</small>
+        </div>
+        <div class="metric glass-card">
+          <span>RAIN RISK</span><strong id="rainBig">Moderate</strong><small>prototype indicator</small>
+        </div>
+      </div>
+
+      <div class="weather-alert glass-card">
+        <div class="alert-icon">!</div>
+        <div>
+          <small>POST-HARVEST RISK</small>
+          <h3 id="riskTitle">Moderate humidity risk</h3>
+          <p id="riskBody">Humidity may become an issue for moisture-sensitive produce. Consider the market price before deciding whether to store.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene scene-market" id="market" data-scene="market">
+      <div class="market-visual">
+        <div class="price-orbit"><span>₹</span></div>
+        <div class="market-card glass-card">
+          <div class="tag">MARKET REFERENCE</div>
+          <div class="market-number">₹<span id="marketPrice">24</span><small>/kg</small></div>
+          <p>Example reference price for the prototype.</p>
+        </div>
+      </div>
+      <div class="market-copy">
+        <p class="eyebrow dark">03 • COMPARE THE MARKET</p>
+        <h2>Don't decide on<br><span>price alone.</span></h2>
+        <p>KrishiFlow compares the farmer's expected price with a market reference, then combines that signal with weather risk.</p>
+        <div class="compare">
+          <div><span>Your target</span><strong id="targetPrice">₹30/kg</strong></div>
+          <div><span>Reference</span><strong id="refPrice">₹24/kg</strong></div>
+          <div><span>Gap</span><strong id="priceGap">₹6/kg</strong></div>
+        </div>
+        <a class="btn btn-primary dark-btn" href="#decision">See the decision <span>→</span></a>
+      </div>
+    </section>
+
+    <section class="scene scene-decision" id="decision" data-scene="decision">
+      <div class="decision-copy">
+        <p class="eyebrow">04 • KRISHIFLOW DECISION</p>
+        <h2>Turn signals into<br><span>a clear next step.</span></h2>
+        <p>The demo engine uses understandable rules so judges and teammates can see how the recommendation is reached.</p>
+      </div>
+
+      <div class="decision-board glass-card">
+        <div class="decision-inputs">
+          <span>PRODUCE <b id="decisionCrop">Wheat</b></span>
+          <span>HUMIDITY <b id="decisionHumidity">78%</b></span>
+          <span>PRICE GAP <b id="decisionGap">₹6/kg</b></span>
+        </div>
+        <div class="decision-result">
+          <div class="decision-icon" id="decisionIcon">↗</div>
+          <div>
+            <small>RECOMMENDED ACTION</small>
+            <h3 id="decisionAction">SELL SOON</h3>
+            <p id="decisionReason">Market price is below the target while humidity is moderate. Re-check conditions before holding for longer.</p>
+          </div>
+        </div>
+        <div class="decision-options">
+          <button data-action="SELL">SELL</button>
+          <button data-action="STORE">STORE</button>
+          <button data-action="PROCESS">PROCESS</button>
+          <button data-action="ATTENTION">ATTENTION</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene scene-storage" id="storage" data-scene="storage">
+      <div class="storage-copy">
+        <p class="eyebrow dark">05 • WHEN STORAGE MAKES SENSE</p>
+        <h2>Low price + high risk?<br><span>Find a safer place to wait.</span></h2>
+        <p>If the price is not reasonable but weather risk is high, the concept shifts from “just wait” to “find suitable storage.”</p>
+      </div>
+      <div class="storage-list">
+        <article class="storage-card">
+          <div class="storage-top"><span class="warehouse-icon">▦</span><span class="available">AVAILABLE</span></div>
+          <h3>GreenGrain Warehouse</h3>
+          <p>Suitable for dry grain storage</p>
+          <div class="storage-meta"><span>📍 8 km</span><span>₹1.80/kg/day</span></div>
+          <button>View Details →</button>
+        </article>
+        <article class="storage-card">
+          <div class="storage-top"><span class="warehouse-icon">▦</span><span class="available">AVAILABLE</span></div>
+          <h3>AgriSafe Depot</h3>
+          <p>Covered storage with transport support</p>
+          <div class="storage-meta"><span>📍 12 km</span><span>₹2.10/kg/day</span></div>
+          <button>View Details →</button>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>
+      <div class="logo"><span class="logo-mark"></span><span>Krishi<span>Flow</span></span></div>
+      <p>For farmers. For smarter post-harvest decisions.</p>
+    </div>
+    <div class="prototype-note">SIH 2026 • Prototype • Demo data only</div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
